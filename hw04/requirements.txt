@@ -1,0 +1,4 @@
+openai-whisper
+setuptools-rust
+torch
+ffmpeg-python
