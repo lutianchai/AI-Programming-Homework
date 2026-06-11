@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>智能机械臂演示</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        button { padding: 10px 20px; font-size: 16px; margin-bottom: 10px; }
+        #result { margin-top: 20px; }
+        #arm { font-size: 50px; margin-top: 20px; transition: transform 1s; }
+        img { max-width: 640px; border: 1px solid #ccc; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>YOLOv8智能机械臂演示</h1>
+    <p>点击按钮识别桌面截图 "phone.png" 并触发机械臂动作</p>
+    <button onclick="detectAndGrab()">识别 & 抓取</button>
+
+    <div id="result">
+        <strong>识别结果:</strong>
+        <pre id="objects"></pre>
+        <strong>动作:</strong>
+        <div id="action">待机</div>
+    </div>
+
+    <img id="detected-image" src="" alt="识别图片"/>
+
+    <div id="arm">🤖</div>
+
+    <script>
+        async function detectAndGrab() {
+            const objectsEl = document.getElementById('objects');
+            const actionEl = document.getElementById('action');
+            const imgEl = document.getElementById('detected-image');
+            const arm = document.getElementById('arm');
+
+            objectsEl.textContent = "识别中...";
+            actionEl.textContent = "待机";
+            imgEl.src = "";
+            arm.style.transform = "translateX(0)";
+
+            try {
+                const response = await fetch('/detect');
+                const data = await response.json();
+
+                if(data.objects.length > 0){
+                    objectsEl.textContent = data.objects.join('\n');
+                } else {
+                    objectsEl.textContent = "未检测到对象";
+                }
+
+                // 显示动作
+                switch(data.action){
+                    case "grab_phone":
+                        actionEl.textContent = "机械臂抓取手机";
+                        arm.style.transform = "translateX(200px)";
+                        break;
+                    case "grab_bottle":
+                        actionEl.textContent = "机械臂抓取瓶子";
+                        arm.style.transform = "translateX(150px)";
+                        break;
+                    case "grab_cup":
+                        actionEl.textContent = "机械臂抓取杯子";
+                        arm.style.transform = "translateX(120px)";
+                        break;
+                    default:
+                        actionEl.textContent = "待机";
+                        arm.style.transform = "translateX(0)";
+                }
+
+                if(data.image){
+                    imgEl.src = data.image + "?t=" + new Date().getTime();
+                }
+
+            } catch (err) {
+                console.error(err);
+                objectsEl.textContent = "请求出错";
+                actionEl.textContent = "待机";
+            }
+        }
+    </script>
+</body>
+</html>
